@@ -136,11 +136,12 @@ only file **metadata + ownership** (the `files` table), never the bytes.
 
 - ✅ Live at `https://decisionbroker.com` with auto-SSL ("Coming Soon" page).
 - ✅ Push-to-`main` → Vercel production deploy.
-- ✅ Drizzle + Postgres set up and verified locally (branch
-  `feat/postgres-drizzle`, not yet merged to `main`).
+- ✅ Drizzle + Postgres: local Docker dev DB and **Neon** production DB, both
+  migrated; merged to `main`.
 - ✅ `files` table (UUID PK, `owner_user_id`, workflow `status`, `storage_class`,
-  archival fields) created and verified locally.
-- ▶️ Pending: provision Neon + set `DATABASE_URL` in Vercel; prove prod
-  read/write; merge the DB branch.
+  archival fields) created in both.
+- ✅ **Production read/write verified** — the deployed app on
+  `decisionbroker.com` reads and writes Neon (via the now-removed
+  `/api/health/db` check).
 - ▶️ To design: full relational model (projects, requests, items, files, …) and
   Cloudflare R2 file storage + per-user upload/download.

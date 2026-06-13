@@ -1,25 +1,35 @@
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL is not set");
-}
-
-// Reuse a single client across hot reloads (dev) and warm serverless
-// invocations (prod) so we don't exhaust connections.
+// Cache the client/db on globalThis so warm serverless invocations and dev
+// hot-reloads reuse one connection instead of exhausting the pool.
 const globalForDb = globalThis as unknown as {
-  client?: ReturnType<typeof postgres>;
+  dbClient?: ReturnType<typeof postgres>;
+  db?: PostgresJsDatabase<typeof schema>;
 };
 
-// `prepare: false` keeps us compatible with transaction-mode poolers
-// (e.g. Neon's pooled endpoint / PgBouncer). Harmless for local Postgres.
-const client =
-  globalForDb.client ?? postgres(connectionString, { prepare: false });
+function init(): PostgresJsDatabase<typeof schema> {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set");
+  }
 
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.client = client;
+  // `prepare: false` keeps us compatible with transaction-mode poolers
+  // (e.g. Neon's pooled endpoint / PgBouncer). Harmless for local Postgres.
+  const client =
+    globalForDb.dbClient ?? postgres(connectionString, { prepare: false });
+  if (process.env.NODE_ENV !== "production") {
+    globalForDb.dbClient = client;
+  }
+
+  return drizzle(client, { schema });
 }
 
-export const db = drizzle(client, { schema });
+/**
+ * Lazily-created Drizzle client. Lazy so importing this module never requires
+ * DATABASE_URL (e.g. during `next build`) — it's only needed when a query runs.
+ */
+export function getDb(): PostgresJsDatabase<typeof schema> {
+  return (globalForDb.db ??= init());
+}

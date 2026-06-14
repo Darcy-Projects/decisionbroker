@@ -170,4 +170,8 @@ high-value, low-risk task that exercises the sandbox DB without prod exposure.
   stopped**, so `db:up` failed under `set -e` and the bootstrap bailed before
   writing `.env.local`/migrating (the agent finished it manually). Fixed:
   `cloud-bootstrap.sh` now starts and waits for `dockerd` before `db:up`.
+- ✅ 2026-06-14: Re-verified the cloud-dev bootstrap end-to-end — SessionStart
+  hook ran automatically (deps → dockerd start → Postgres 17 → migrations),
+  Drizzle round-trip (`select now()`, `files` table present), `npm run build`,
+  and `npm run dev` (HTTP 200) all passed with no manual workarounds.
 - ▶️ **NEXT:** Step 5 — draft `docs/live/data-model.md`.

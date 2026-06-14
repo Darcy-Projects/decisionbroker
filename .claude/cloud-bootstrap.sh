@@ -7,6 +7,24 @@ set -euo pipefail
 echo "[cloud-bootstrap] installing dependencies…"
 npm install
 
+# Fresh cloud sandboxes start with the Docker daemon stopped (no
+# /var/run/docker.sock). Start it before db:up, or `set -e` aborts the whole
+# bootstrap here — leaving no .env.local and no migrations.
+if ! docker info >/dev/null 2>&1; then
+  echo "[cloud-bootstrap] docker daemon not running — starting it…"
+  if ! sudo service docker start >/dev/null 2>&1; then
+    sudo dockerd >/tmp/dockerd.log 2>&1 &
+  fi
+  for i in $(seq 1 30); do
+    docker info >/dev/null 2>&1 && break
+    sleep 1
+  done
+  docker info >/dev/null 2>&1 || {
+    echo "[cloud-bootstrap] ERROR: docker daemon did not start (see /tmp/dockerd.log)"
+    exit 1
+  }
+fi
+
 echo "[cloud-bootstrap] starting local Postgres (docker compose)…"
 npm run db:up
 

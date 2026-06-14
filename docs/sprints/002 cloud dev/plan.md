@@ -166,4 +166,8 @@ high-value, low-risk task that exercises the sandbox DB without prod exposure.
 - ✅ Step 4 verified in a cloud session: clone → `npm install` → Docker
   Postgres 17 → migrations → Drizzle round-trip (`select now()`, `files` table)
   → `npm run build` → docs PR loop confirmed end-to-end.
+- 🐞→✅ Verification caught that the sandbox starts with the **Docker daemon
+  stopped**, so `db:up` failed under `set -e` and the bootstrap bailed before
+  writing `.env.local`/migrating (the agent finished it manually). Fixed:
+  `cloud-bootstrap.sh` now starts and waits for `dockerd` before `db:up`.
 - ▶️ **NEXT:** Step 5 — draft `docs/live/data-model.md`.

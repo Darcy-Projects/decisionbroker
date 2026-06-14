@@ -58,6 +58,7 @@ they are not required to install an app (however they will be encouraged to sign
 6.  i want it to dynamically create work flows.  what i mean, that if each individual user optimizes their own work
 then a group of users, could end up defining a workflow.  for example one user may recived work items from customers
 and then triage them through rules.  the rules couldu add information or context and provide custom  routing.  a rule couldl for example invoke a skill to do a process.  The collection of all rules, could define the corporate workflows and operating book.
+7. a key part of what i am thinking about is how to "tap into" the user question tool.  so questions are routed to the decision broker and then back to the ai sessoin.  I think this might be an early prototype concept.  I was considering developing oru own custom terminal that claude might run inside of.  so when an ai issues a question or prompt for user input, our terminal can capture that, and route it approprpiately.
 
 I would like you to ask me some clarifying questions, with a goal to putting a scope around this.
 i would like you to generate a document called docs\live\Project Overview.md
@@ -66,4 +67,9 @@ as the output of this initial scoping.
 The document does not need to specify how we do things, but is intended to clarify
 the goals of the project, and a high level description of the project.
 
-It would be good in this document to clarify an approach for how we're going to go about defining all this better.
+
+the outputs from this project is a proof of concept.  It does not need to be production quality,
+but it does need to demonstrate how all the elements can work together.
+
+So maybe some early steps are just to explore options and consider risks.
+It would be good if this document could recommend steps and stages that we go about doing that.

@@ -1,7 +1,13 @@
 # DecisionBroker — Tech Stack (Live)
 
 > Living document. Keep this current as the stack evolves. This is the
-> authoritative reference for how the project is built and deployed.
+> authoritative reference for **what** the project is built with and **where** it
+> is deployed (products, vendors, versions, hosting, env vars, commands). For
+> **how the code is organized** (tiers, boundaries, ports/adapters) see
+> [`architecture.md`](./architecture.md).
+>
+> Rule of thumb: _if swapping a vendor would change the sentence, it belongs
+> here; if it survives the swap, it belongs in `architecture.md`._
 
 _Last updated: 2026-06-13_
 
@@ -69,15 +75,17 @@ transaction-mode poolers (Neon's pooled endpoint / PgBouncer).
 
 - `docker-compose.yml` — local Postgres service.
 - `drizzle.config.ts` — drizzle-kit config (loads `.env.local`).
-- `src/db/schema.ts` — table definitions.
-- `src/db/index.ts` — singleton Drizzle client.
+- `src/infrastructure/db/drizzle/schema.ts` — table definitions.
+- `src/infrastructure/db/drizzle/client.ts` — singleton Drizzle client (`getDb()`).
+- `src/infrastructure/db/drizzle/file-repository.ts` — adapter implementing the
+  core's `FileRepository` port (the app talks to this via the port, not directly).
 - `drizzle/` — generated SQL migrations (committed, versioned).
 
 ### Local dev workflow
 
 ```bash
 npm run db:up        # start local Postgres (Docker)
-# edit src/db/schema.ts
+# edit src/infrastructure/db/drizzle/schema.ts
 npm run db:push      # rapid iteration: apply schema directly (no migration file)
 npm run db:studio    # browse data in a GUI
 # when the schema stabilizes:

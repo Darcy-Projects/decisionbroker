@@ -5,8 +5,12 @@ Tailwind 4) hosted on **Vercel**, with domain + DNS at **Cloudflare** and a
 **Postgres** backend via **Drizzle ORM**. Live at https://decisionbroker.com.
 
 ## Source of truth — read first
+- **`docs/live/architecture.md`** — how the code is organized: the interface →
+  core → ports ← infrastructure tiers, the dependency rule, and the boundaries
+  ESLint enforces. Read before adding code so it lands in the right tier.
 - **`docs/live/tech stack.md`** — authoritative, current description of the
-  stack, hosting, domain/DNS, database, and guiding principles.
+  stack, hosting, domain/DNS, database, and guiding principles (the concrete
+  tech behind each adapter).
 - **`docs/sprints/*/log.md`** — what each sprint did (history). Completed sprints
   are archived under `docs/archive/sprints/`.
 
@@ -25,8 +29,8 @@ Tailwind 4) hosted on **Vercel**, with domain + DNS at **Cloudflare** and a
   - `.env.local` → local Docker `DATABASE_URL`.
   - `.env.production.local` → **direct** Neon string, used by `db:migrate:prod`.
   - Vercel holds the **pooled** Neon `DATABASE_URL` for the running app.
-- DB workflow: edit `src/db/schema.ts` → `db:push` (rapid) → `db:generate` +
-  `db:migrate` when stable. Migrate Neon via `db:migrate:prod`.
+- DB workflow: edit `src/infrastructure/db/drizzle/schema.ts` → `db:push` (rapid)
+  → `db:generate` + `db:migrate` when stable. Migrate Neon via `db:migrate:prod`.
 
 ## Current state & next step
 - ✅ Live site ("Coming Soon"); Postgres read/write verified in production (Neon).

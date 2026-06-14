@@ -170,4 +170,8 @@ high-value, low-risk task that exercises the sandbox DB without prod exposure.
   stopped**, so `db:up` failed under `set -e` and the bootstrap bailed before
   writing `.env.local`/migrating (the agent finished it manually). Fixed:
   `cloud-bootstrap.sh` now starts and waits for `dockerd` before `db:up`.
-- ▶️ **NEXT:** Step 5 — draft `docs/live/data-model.md`.
+- ✅ Re-verified 2026-06-14 against the hardened bootstrap: all five checklist
+  steps passed automatically, the docker-daemon bug did **not** recur (PR #4).
+  Full write-up in `log.md`.
+- 🏁 **Sprint closed.** **NEXT (next sprint):** Step 5 — draft
+  `docs/live/data-model.md`.

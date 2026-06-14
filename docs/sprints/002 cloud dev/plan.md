@@ -163,5 +163,7 @@ high-value, low-risk task that exercises the sandbox DB without prod exposure.
 - ✅ Local dev fully operational (Node 22, deps installed, Docker Postgres 17
   healthy, env files present, `gh` authed, repo synced with `origin/main`).
 - ✅ Flavour + DB strategy decided (hosted cloud agents; sandbox-local Postgres).
-- ▶️ **NEXT:** Step 1 (connect GitHub) by the user; Step 2 (commit bootstrap)
-  ready to apply.
+- ✅ Step 4 verified in a cloud session: clone → `npm install` → Docker
+  Postgres 17 → migrations → Drizzle round-trip (`select now()`, `files` table)
+  → `npm run build` → docs PR loop confirmed end-to-end.
+- ▶️ **NEXT:** Step 5 — draft `docs/live/data-model.md`.

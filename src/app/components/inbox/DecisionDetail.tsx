@@ -22,7 +22,7 @@ import {
 } from "@/app/lib/decisions";
 import { Button } from "@/app/components/ui/button";
 import { cn } from "@/app/lib/utils";
-import { StatusBadge, UrgencyBadge, Avatar, statusMeta } from "./meta";
+import { StatusBadge, UrgencyBadge, Avatar, statusMeta } from "./Meta";
 
 export function DecisionDetail({
   decision,

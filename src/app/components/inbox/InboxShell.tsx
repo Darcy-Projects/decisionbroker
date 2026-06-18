@@ -8,13 +8,13 @@ import {
   type Decision,
   type BoardKey,
 } from "@/app/lib/decisions";
-import { Sidebar, type Selection } from "./sidebar";
-import { DecisionList } from "./decision-list";
-import { DecisionDetail } from "./decision-detail";
+import { Sidebar, type Selection } from "./Sidebar";
+import { DecisionList } from "./DecisionList";
+import { DecisionDetail } from "./DecisionDetail";
 import {
   AddDecisionDialog,
   type NewDecisionInput,
-} from "./add-decision-dialog";
+} from "./AddDecisionDialog";
 
 const filterToStatus: Record<string, Decision["status"] | undefined> = {
   "Needs decision": "needs_decision",

@@ -5,7 +5,7 @@ import { X, Plus, ChevronDown, UserPlus, Check } from "lucide-react";
 import { people } from "@/app/lib/decisions";
 import { Button } from "@/app/components/ui/button";
 import { cn } from "@/app/lib/utils";
-import { Avatar } from "./meta";
+import { Avatar } from "./Meta";
 
 export type NewDecisionInput = {
   question: string;

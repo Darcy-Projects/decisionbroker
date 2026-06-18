@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { Decision } from "@/app/lib/decisions";
 import { cn } from "@/app/lib/utils";
-import { StatusBadge, UrgencyBadge, Avatar } from "./meta";
+import { StatusBadge, UrgencyBadge, Avatar } from "./Meta";
 
 const filters = ["All", "Needs decision", "Answered"] as const;
 

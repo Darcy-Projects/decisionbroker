@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { X, Plus, ChevronDown, UserPlus, Check } from "lucide-react";
-import { people } from "@/app/lib/decisions";
+import type { Person } from "@/app/lib/decisions";
 import { Button } from "@/app/components/ui/button";
 import { cn } from "@/app/lib/utils";
 import { Avatar } from "./Meta";
@@ -18,11 +18,13 @@ export function AddDecisionDialog({
   onClose,
   onCreate,
   boardName,
+  people,
 }: {
   open: boolean;
   onClose: () => void;
   onCreate: (input: NewDecisionInput) => void;
   boardName: string;
+  people: Person[];
 }) {
   const [question, setQuestion] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
@@ -32,18 +34,13 @@ export function AddDecisionDialog({
   const questionRef = useRef<HTMLTextAreaElement>(null);
   const assigneeRef = useRef<HTMLDivElement>(null);
 
-  // Reset the form each time the dialog opens.
+  // The form resets each open via a `key` on this component in the parent
+  // (which remounts it), so the fields start from their useState defaults.
+  // Here we only focus the question field shortly after mount.
   useEffect(() => {
-    if (open) {
-      setQuestion("");
-      setAssigneeId(null);
-      setTags([]);
-      setTagDraft("");
-      setAssigneeOpen(false);
-      // Focus the question field shortly after mount.
-      const t = setTimeout(() => questionRef.current?.focus(), 50);
-      return () => clearTimeout(t);
-    }
+    if (!open) return;
+    const t = setTimeout(() => questionRef.current?.focus(), 50);
+    return () => clearTimeout(t);
   }, [open]);
 
   // Close on Escape.

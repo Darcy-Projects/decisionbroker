@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Zap, ChevronDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import { boards, archivedBoards, type BoardKey } from "@/app/lib/decisions";
+import type { Board, BoardKey } from "@/app/lib/decisions";
 
 export type Selection = { type: "board"; board: BoardKey };
 
@@ -11,10 +11,14 @@ export function Sidebar({
   selection,
   onSelectBoard,
   boardCounts,
+  boards,
+  archivedBoards,
 }: {
   selection: Selection;
   onSelectBoard: (b: BoardKey) => void;
   boardCounts: Record<BoardKey, number>;
+  boards: Board[];
+  archivedBoards: Board[];
 }) {
   const [queuesOpen, setQueuesOpen] = useState(true);
   const [archiveOpen, setArchiveOpen] = useState(false);

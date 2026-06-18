@@ -7,25 +7,21 @@ import {
   Sparkles,
   Check,
   Clock,
-  ScrollText,
   Plus,
   X,
   ChevronDown,
   UserPlus,
   CornerDownLeft,
 } from "lucide-react";
-import {
-  people,
-  boards,
-  archivedBoards,
-  type Decision,
-} from "@/app/lib/decisions";
+import type { Board, Decision, Person } from "@/app/lib/decisions";
 import { Button } from "@/app/components/ui/button";
 import { cn } from "@/app/lib/utils";
 import { StatusBadge, UrgencyBadge, Avatar, statusMeta } from "./Meta";
 
 export function DecisionDetail({
   decision,
+  boards,
+  people,
   onResolve,
   onAddTag,
   onRemoveTag,
@@ -33,7 +29,9 @@ export function DecisionDetail({
   onAddMessage,
 }: {
   decision: Decision;
-  onResolve: (id: string) => void;
+  boards: Board[];
+  people: Person[];
+  onResolve: (id: string, answerText: string) => void;
   onAddTag: (id: string, tag: string) => void;
   onRemoveTag: (id: string, tag: string) => void;
   onReassign: (id: string, personId: string | null) => void;
@@ -47,14 +45,8 @@ export function DecisionDetail({
   const tagInputRef = useRef<HTMLInputElement>(null);
   const assigneeRef = useRef<HTMLDivElement>(null);
 
-  // Reset working state whenever a different decision is opened.
-  useEffect(() => {
-    setNote("");
-    setAddingTag(false);
-    setTagDraft("");
-    setAssigneeOpen(false);
-    setMessageDraft("");
-  }, [decision.id, decision.options]);
+  // Working state resets per decision via a `key` on this component in the
+  // parent (which remounts it), so no reset effect is needed here.
 
   // Focus the tag input when it appears.
   useEffect(() => {
@@ -91,9 +83,7 @@ export function DecisionDetail({
   const isOpen =
     decision.status === "needs_decision" || decision.status === "routed";
   const canSubmit = isOpen && note.trim().length > 0;
-  const board = [...boards, ...archivedBoards].find(
-    (b) => b.key === decision.board,
-  );
+  const board = boards.find((b) => b.key === decision.board);
 
   return (
     <div className="flex min-w-0 flex-1 flex-col bg-background">
@@ -284,21 +274,6 @@ export function DecisionDetail({
             </section>
           )}
 
-          {/* Matched rule (auto-resolved) */}
-          {decision.matchedRule && (
-            <div className="mt-5 flex items-start gap-2.5 rounded-lg border border-border bg-muted/40 p-3.5">
-              <ScrollText className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-              <div className="text-sm">
-                <p className="font-medium text-foreground">
-                  Resolved automatically by a rule
-                </p>
-                <p className="mt-0.5 text-muted-foreground">
-                  {decision.matchedRule}
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Conversation */}
           {!(
             decision.status === "answered" &&
@@ -417,7 +392,7 @@ export function DecisionDetail({
               <div className="mt-2.5 flex items-center gap-2">
                 <Button
                   disabled={!canSubmit}
-                  onClick={() => onResolve(decision.id)}
+                  onClick={() => onResolve(decision.id, note)}
                   size="sm"
                 >
                   <Send />

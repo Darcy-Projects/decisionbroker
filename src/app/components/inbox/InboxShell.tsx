@@ -1,12 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  decisions as initialDecisions,
-  boards,
-  people,
-  type Decision,
-  type BoardKey,
+import type {
+  Decision,
+  BoardKey,
+  InboxData,
 } from "@/app/lib/decisions";
 import { Sidebar, type Selection } from "./Sidebar";
 import { DecisionList } from "./DecisionList";
@@ -33,27 +31,33 @@ function waitedMinutes(label: string): number {
   return total;
 }
 
-export function InboxShell() {
-  const [items, setItems] = useState<Decision[]>(initialDecisions);
+export function InboxShell({ initial }: { initial: InboxData }) {
+  const { boards, archivedBoards, people } = initial;
+  const allBoards = useMemo(
+    () => [...boards, ...archivedBoards],
+    [boards, archivedBoards],
+  );
+
+  const [items, setItems] = useState<Decision[]>(initial.decisions);
   const [selection, setSelection] = useState<Selection>({
     type: "board",
-    board: boards[0].key,
+    board: boards[0]?.key ?? archivedBoards[0]?.key ?? "",
   });
-  const [selectedId, setSelectedId] = useState<string>(initialDecisions[0].id);
+  const [selectedId, setSelectedId] = useState<string>("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [addOpen, setAddOpen] = useState(false);
 
   const boardCounts = useMemo(() => {
-    const counts = {} as Record<BoardKey, number>;
+    const counts: Record<BoardKey, number> = {};
     for (const b of boards) counts[b.key] = 0;
     for (const d of items) {
       if (d.status === "needs_decision")
         counts[d.board] = (counts[d.board] ?? 0) + 1;
     }
     return counts;
-  }, [items]);
+  }, [items, boards]);
 
   const visible = useMemo(() => {
     const status = filterToStatus[filter];
@@ -78,27 +82,19 @@ export function InboxShell() {
 
   const selected = visible.find((d) => d.id === selectedId) ?? visible[0];
 
-  function handleResolve(id: string) {
-    setItems((prev) =>
-      prev.map((d) =>
-        d.id === id
-          ? {
-              ...d,
-              status: "answered",
-              unread: false,
-              timeline: [
-                ...d.timeline,
-                { id: `t-${Date.now()}`, at: "now", label: "Answered by You" },
-                {
-                  id: `t-${Date.now() + 1}`,
-                  at: "now",
-                  label: "Answer returned to session",
-                },
-              ],
-            }
-          : d,
-      ),
-    );
+  async function handleResolve(id: string, answerText: string) {
+    const res = await fetch(`/api/decisions/${id}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answerText }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert(body.error ?? "Could not answer the decision.");
+      return;
+    }
+    const updated: Decision = await res.json();
+    setItems((prev) => prev.map((d) => (d.id === id ? updated : d)));
   }
 
   function handleAddTag(id: string, tag: string) {
@@ -153,41 +149,20 @@ export function InboxShell() {
     );
   }
 
-  function handleAddDecision(input: NewDecisionInput) {
-    const board = selection.board;
-    const person = input.assigneeId
-      ? people.find((p) => p.id === input.assigneeId)
-      : undefined;
-    // Derive a short title from the question (first sentence / clause).
-    const title =
-      input.question
-        .split(/[.?!\n]/)[0]
-        .trim()
-        .slice(0, 80) || input.question.trim().slice(0, 80);
-    const now = Date.now();
-    const newDecision: Decision = {
-      id: `d-${now}`,
-      ref: `DEC-${Math.floor(2044 + Math.random() * 900)}`,
-      title,
-      question: input.question,
-      context: "",
-      kind: "approval",
-      status: "needs_decision",
-      board,
-      urgency: "medium",
-      createdAt: new Date(now).toISOString(),
-      waitingFor: "0m",
-      session: { name: "Manual entry", agent: "You", project: "Inbox" },
-      requestedBy: "You",
-      tags: input.tags,
-      routedTo: person,
-      timeline: [
-        { id: `t-${now}`, at: "now", label: "Decision created by You" },
-      ],
-      unread: true,
-    };
-    setItems((prev) => [newDecision, ...prev]);
-    setSelectedId(newDecision.id);
+  async function handleAddDecision(input: NewDecisionInput) {
+    const res = await fetch("/api/decisions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ boardId: selection.board, ...input }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert(body.error ?? "Could not create the decision.");
+      return;
+    }
+    const created: Decision = await res.json();
+    setItems((prev) => [created, ...prev]);
+    setSelectedId(created.id);
   }
 
   return (
@@ -198,6 +173,8 @@ export function InboxShell() {
           setSelection({ type: "board", board: b })
         }
         boardCounts={boardCounts}
+        boards={boards}
+        archivedBoards={archivedBoards}
       />
       <DecisionList
         decisions={visible}
@@ -213,7 +190,10 @@ export function InboxShell() {
       />
       {selected ? (
         <DecisionDetail
+          key={selected.id}
           decision={selected}
+          boards={allBoards}
+          people={people}
           onResolve={handleResolve}
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}
@@ -227,11 +207,13 @@ export function InboxShell() {
       )}
 
       <AddDecisionDialog
+        key={addOpen ? "add-open" : "add-closed"}
         open={addOpen}
         onClose={() => setAddOpen(false)}
         onCreate={handleAddDecision}
+        people={people}
         boardName={
-          boards.find((b) => b.key === selection.board)?.name ?? "this board"
+          allBoards.find((b) => b.key === selection.board)?.name ?? "this board"
         }
       />
     </main>

@@ -13,6 +13,7 @@ export async function POST(request: Request) {
       question: input.question,
       assigneeId: input.assigneeId ?? null,
       tags: input.tags,
+      sessionId: input.sessionId ?? null,
     });
     return Response.json(toDecisionView(hydrated, new Date()), { status: 201 });
   } catch (error) {

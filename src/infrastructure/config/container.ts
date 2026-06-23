@@ -17,10 +17,13 @@ import { makeListInbox } from "@/core/application/decisions/list-inbox";
 import { makeGetDecision } from "@/core/application/decisions/get-decision";
 import { makeCreateDecision } from "@/core/application/decisions/create-decision";
 import { makeAnswerDecision } from "@/core/application/decisions/answer-decision";
+import { makeUpdateBoard } from "@/core/application/decisions/update-board";
+import { makeEnsureSession } from "@/core/application/decisions/ensure-session";
 import { DrizzleFileRepository } from "@/infra/db/drizzle/file-repository";
 import { DrizzleActorRepository } from "@/infra/db/drizzle/actor-repository";
 import { DrizzleBoardRepository } from "@/infra/db/drizzle/board-repository";
 import { DrizzleDecisionRepository } from "@/infra/db/drizzle/decision-repository";
+import { DrizzleSessionRepository } from "@/infra/db/drizzle/session-repository";
 import { SystemClock } from "@/infra/clock/system-clock";
 import { seedInbox } from "@/infra/db/drizzle/seed";
 import { DEV_CURRENT_USER_ID } from "@/infra/config/dev-user";
@@ -29,6 +32,7 @@ const fileRepository = new DrizzleFileRepository();
 const actorRepository = new DrizzleActorRepository();
 const boardRepository = new DrizzleBoardRepository();
 const decisionRepository = new DrizzleDecisionRepository();
+const sessionRepository = new DrizzleSessionRepository();
 const clock = new SystemClock();
 
 // Dev-only identity selection. A later sprint resolves this from WorkOS.
@@ -46,15 +50,21 @@ export const services = {
   listBoards: makeListBoards({ boards: boardRepository }),
   createBoard: makeCreateBoard({ boards: boardRepository }),
   archiveBoard: makeArchiveBoard({ boards: boardRepository }),
+  updateBoard: makeUpdateBoard({ boards: boardRepository }),
   listInbox: makeListInbox({
     boards: boardRepository,
     decisions: decisionRepository,
   }),
   getDecision: makeGetDecision({ decisions: decisionRepository }),
+  ensureSession: makeEnsureSession({
+    actors: actorRepository,
+    sessions: sessionRepository,
+  }),
   createDecision: makeCreateDecision({
     boards: boardRepository,
     decisions: decisionRepository,
     actors: actorRepository,
+    sessions: sessionRepository,
     clock,
     currentUserId,
   }),

@@ -33,5 +33,7 @@ export interface BoardRepository {
   getConfig(boardId: string): Promise<BoardConfig | null>;
   /** Insert a board and seed its steps + priorities atomically. */
   create(data: CreateBoardData): Promise<BoardConfig>;
+  /** Rename a board (the only board field editable this sprint). */
+  rename(boardId: string, name: string): Promise<void>;
   setArchived(boardId: string, archived: boolean): Promise<void>;
 }

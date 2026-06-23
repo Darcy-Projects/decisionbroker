@@ -8,6 +8,7 @@ import { z } from "zod";
 import { TagNotAllowedError } from "@/core/application/decisions/create-decision";
 import { BoardNotFoundError } from "@/core/application/decisions/archive-board";
 import { DecisionNotFoundError } from "@/core/application/decisions/get-decision";
+import { SessionNotFoundError } from "@/core/application/decisions/ensure-session";
 import { OptionNotForDecisionError } from "@/core/application/decisions/answer-decision";
 import { AnswerContentRequiredError } from "@/core/domain/decisions/decision";
 
@@ -16,6 +17,18 @@ export const createDecisionSchema = z.object({
   question: z.string().trim().min(1, "A question is required."),
   assigneeId: z.string().uuid().nullable().optional(),
   tags: z.array(z.string()).default([]),
+  // Optional: when set, the decision is raised by the session's agent and
+  // linked to it (the channel path). The Add dialog omits this.
+  sessionId: z.string().uuid().nullable().optional(),
+});
+
+export const createSessionSchema = z.object({
+  name: z.string().trim().min(1, "A session name is required."),
+  project: z.string().trim().nullable().optional(),
+});
+
+export const updateBoardSchema = z.object({
+  name: z.string().trim().min(1, "A board name is required."),
 });
 
 export const answerDecisionSchema = z
@@ -37,7 +50,8 @@ export function errorResponse(error: unknown): Response {
   }
   if (
     error instanceof BoardNotFoundError ||
-    error instanceof DecisionNotFoundError
+    error instanceof DecisionNotFoundError ||
+    error instanceof SessionNotFoundError
   ) {
     return Response.json({ error: error.message }, { status: 404 });
   }

@@ -6,6 +6,7 @@ import type {
   BoardKey,
   InboxData,
 } from "@/app/lib/decisions";
+import type { Board } from "@/app/lib/decisions";
 import { Sidebar, type Selection } from "./Sidebar";
 import { DecisionList } from "./DecisionList";
 import { DecisionDetail } from "./DecisionDetail";
@@ -13,6 +14,7 @@ import {
   AddDecisionDialog,
   type NewDecisionInput,
 } from "./AddDecisionDialog";
+import { EditBoardDialog } from "./EditBoardDialog";
 
 const filterToStatus: Record<string, Decision["status"] | undefined> = {
   "Needs decision": "needs_decision",
@@ -32,7 +34,12 @@ function waitedMinutes(label: string): number {
 }
 
 export function InboxShell({ initial }: { initial: InboxData }) {
-  const { boards, archivedBoards, people } = initial;
+  const { people } = initial;
+  // Boards live in state so a rename reflects immediately in the sidebar.
+  const [boards, setBoards] = useState<Board[]>(initial.boards);
+  const [archivedBoards, setArchivedBoards] = useState<Board[]>(
+    initial.archivedBoards,
+  );
   const allBoards = useMemo(
     () => [...boards, ...archivedBoards],
     [boards, archivedBoards],
@@ -48,6 +55,7 @@ export function InboxShell({ initial }: { initial: InboxData }) {
   const [filter, setFilter] = useState("All");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [addOpen, setAddOpen] = useState(false);
+  const [editBoard, setEditBoard] = useState<Board | null>(null);
 
   const boardCounts = useMemo(() => {
     const counts: Record<BoardKey, number> = {};
@@ -149,6 +157,24 @@ export function InboxShell({ initial }: { initial: InboxData }) {
     );
   }
 
+  async function handleRenameBoard(boardId: string, name: string) {
+    const res = await fetch(`/api/boards/${boardId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert(body.error ?? "Could not rename the board.");
+      throw new Error("rename failed");
+    }
+    const updated: Board = await res.json();
+    const apply = (prev: Board[]) =>
+      prev.map((b) => (b.key === updated.key ? updated : b));
+    setBoards(apply);
+    setArchivedBoards(apply);
+  }
+
   async function handleAddDecision(input: NewDecisionInput) {
     const res = await fetch("/api/decisions", {
       method: "POST",
@@ -172,6 +198,7 @@ export function InboxShell({ initial }: { initial: InboxData }) {
         onSelectBoard={(b: BoardKey) =>
           setSelection({ type: "board", board: b })
         }
+        onEditBoard={setEditBoard}
         boardCounts={boardCounts}
         boards={boards}
         archivedBoards={archivedBoards}
@@ -216,6 +243,16 @@ export function InboxShell({ initial }: { initial: InboxData }) {
           allBoards.find((b) => b.key === selection.board)?.name ?? "this board"
         }
       />
+
+      {editBoard ? (
+        <EditBoardDialog
+          key={editBoard.key}
+          open
+          board={editBoard}
+          onClose={() => setEditBoard(null)}
+          onRename={handleRenameBoard}
+        />
+      ) : null}
     </main>
   );
 }

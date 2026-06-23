@@ -1,0 +1,16 @@
+{
+  "name": "decisionbroker",
+  "owner": {
+    "name": "DecisionBroker"
+  },
+  "plugins": [
+    {
+      "name": "decisionbroker-channel",
+      "description": "Answer a Claude Code session's questions in DecisionBroker's multiplayer decision inbox. Claude's `ask` tool blocks until a human answers.",
+      "version": "0.1.0",
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://decisionbroker.com"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import type { Actor } from "@/core/domain/decisions/actor";
 import type { ActorRepository } from "@/core/ports/actor-repository";
 import { getDb } from "@/infra/db/drizzle/client";
@@ -35,5 +35,21 @@ export class DrizzleActorRepository implements ActorRepository {
       .where(eq(actors.id, id))
       .limit(1);
     return row ? actorToDomain(row) : null;
+  }
+
+  async findOrCreateAgent(displayName: string): Promise<Actor> {
+    const db = getDb();
+    const [existing] = await db
+      .select()
+      .from(actors)
+      .where(and(eq(actors.kind, "agent"), eq(actors.displayName, displayName)))
+      .limit(1);
+    if (existing) return actorToDomain(existing);
+
+    const [created] = await db
+      .insert(actors)
+      .values({ kind: "agent", displayName, role: null })
+      .returning();
+    return actorToDomain(created);
   }
 }

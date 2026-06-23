@@ -164,6 +164,13 @@ export class DrizzleBoardRepository implements BoardRepository {
     });
   }
 
+  async rename(boardId: string, name: string): Promise<void> {
+    await getDb()
+      .update(boards)
+      .set({ name, updatedAt: new Date() })
+      .where(eq(boards.id, boardId));
+  }
+
   async setArchived(boardId: string, archived: boolean): Promise<void> {
     await getDb()
       .update(boards)

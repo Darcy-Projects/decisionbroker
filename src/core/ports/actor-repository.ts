@@ -9,4 +9,11 @@ import type { Actor } from "@/core/domain/decisions/actor";
 export interface ActorRepository {
   list(): Promise<Actor[]>;
   findById(id: string): Promise<Actor | null>;
+  /**
+   * Find the singleton `agent` actor with this display name, creating it on
+   * first use. Used to attribute decisions raised by an automated launch (e.g.
+   * a Claude Code session) to a stable agent identity. WorkOS does not apply —
+   * agents have no `workosUserId`.
+   */
+  findOrCreateAgent(displayName: string): Promise<Actor>;
 }

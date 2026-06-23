@@ -1,12 +1,15 @@
 import { normalizeTagName } from "@/core/domain/decisions/tag";
+import type { Actor } from "@/core/domain/decisions/actor";
 import type { Clock } from "@/core/ports/clock";
 import type { ActorRepository } from "@/core/ports/actor-repository";
 import type { BoardRepository } from "@/core/ports/board-repository";
+import type { SessionRepository } from "@/core/ports/session-repository";
 import type {
   DecisionRepository,
   HydratedDecision,
 } from "@/core/ports/decision-repository";
 import { BoardNotFoundError } from "./archive-board";
+import { SessionNotFoundError } from "./ensure-session";
 
 /** Raised when a tag is not in the board's allowed set. */
 export class TagNotAllowedError extends Error {
@@ -37,12 +40,19 @@ export interface CreateDecisionInput {
   assigneeId: string | null;
   /** Raw tag strings; validated/normalized against the board's allowed set. */
   tags: string[];
+  /**
+   * Optional originating session (e.g. a Claude Code launch). When present the
+   * questioner becomes that session's agent and the decision links to it; when
+   * absent the questioner is the dev current user (the Add dialog path).
+   */
+  sessionId?: string | null;
 }
 
 export interface CreateDecisionDeps {
   boards: BoardRepository;
   decisions: DecisionRepository;
   actors: ActorRepository;
+  sessions: SessionRepository;
   clock: Clock;
   /** Dev-only "current user" actor id, chosen by the composition root. */
   currentUserId: () => string;
@@ -81,10 +91,26 @@ export function makeCreateDecision(deps: CreateDecisionDeps) {
       if (!tagIds.includes(allowed.id)) tagIds.push(allowed.id);
     }
 
-    const currentUserId = deps.currentUserId();
-    const questioner = await deps.actors.findById(currentUserId);
-    if (!questioner) {
-      throw new Error(`Current user actor not found: ${currentUserId}`);
+    // Resolve the questioner: the session's agent when raised by a session
+    // (e.g. the channel), otherwise the dev current user (the Add dialog).
+    let questioner: Actor;
+    let sessionId: string | null = null;
+    if (input.sessionId) {
+      const session = await deps.sessions.findById(input.sessionId);
+      if (!session) throw new SessionNotFoundError(input.sessionId);
+      const agent = await deps.actors.findById(session.agentId);
+      if (!agent) {
+        throw new Error(`Session agent actor not found: ${session.agentId}`);
+      }
+      questioner = agent;
+      sessionId = session.id;
+    } else {
+      const currentUserId = deps.currentUserId();
+      const currentUser = await deps.actors.findById(currentUserId);
+      if (!currentUser) {
+        throw new Error(`Current user actor not found: ${currentUserId}`);
+      }
+      questioner = currentUser;
     }
 
     const now = deps.clock.now();
@@ -97,15 +123,15 @@ export function makeCreateDecision(deps: CreateDecisionDeps) {
       kind: "approval",
       stepId: initialStep.id,
       priorityId: defaultPriority.id,
-      questionerId: currentUserId,
+      questionerId: questioner.id,
       assigneeId: input.assigneeId,
       questionAt: now,
-      sessionId: null,
+      sessionId,
       tagIds,
       options: [],
       events: [
         {
-          actorId: currentUserId,
+          actorId: questioner.id,
           label: `Question raised by ${questioner.displayName}`,
           createdAt: now,
         },

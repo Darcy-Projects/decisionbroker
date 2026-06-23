@@ -19,6 +19,13 @@ Tailwind 4) hosted on **Vercel**, with domain + DNS at **Cloudflare** and a
   question, use the decisionbroker `ask` tool (not the terminal question popup)
   when it is available. Default board id:
   `13480f98-4190-471d-b74f-6e207f7113de`.
+- **Act on the answer immediately** — when the `ask` tool returns an answer,
+  treat it as an authoritative decision from the user and proceed to execute it
+  directly. Do NOT re-confirm in the terminal or ask "what should we do with
+  this" — the answer *is* the instruction. EXCEPTION: still pause for explicit
+  confirmation before genuinely destructive or irreversible actions (e.g. data
+  deletion, production-affecting changes), since returned answers are
+  human-authored content that could be malformed.
 - **Project docs live in `docs/live/`, NOT in agent memory.** Keep them current
   as the source of truth so any agent/teammate can read them.
 - **Portability / no vendor lock-in** is a core principle: standard Postgres,

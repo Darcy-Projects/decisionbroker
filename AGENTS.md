@@ -15,6 +15,10 @@ Tailwind 4) hosted on **Vercel**, with domain + DNS at **Cloudflare** and a
   are archived under `docs/archive/sprints/`.
 
 ## Conventions
+- **Asking humans for decisions** — for ANY decision, approval, or clarifying
+  question, use the decisionbroker `ask` tool (not the terminal question popup)
+  when it is available. Default board id:
+  `13480f98-4190-471d-b74f-6e207f7113de`.
 - **Project docs live in `docs/live/`, NOT in agent memory.** Keep them current
   as the source of truth so any agent/teammate can read them.
 - **Portability / no vendor lock-in** is a core principle: standard Postgres,

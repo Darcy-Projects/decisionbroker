@@ -50,17 +50,68 @@ so they run behind `--dangerously-load-development-channels`.
 
 ### Option A — bare MCP server (fastest for local dev)
 
-From a project that has `channel/.mcp.json` on its path (or copy the `decisionbroker`
-entry into your own `.mcp.json` / `~/.claude.json` with an absolute path to
-`server.ts`), launch:
+`--dangerously-load-development-channels server:decisionbroker` references an MCP
+server **named** `decisionbroker` that Claude Code already knows about. The
+`channel/.mcp.json` in this repo is **not** auto-discovered for this purpose:
+Claude Code only reads a project `.mcp.json` from the directory you launch it in
+(the repo root, not `channel/`), and that file uses `${CLAUDE_PLUGIN_ROOT}`,
+which only resolves under the plugin loader (Option B).
 
-```bash
-DECISIONBROKER_API_URL=http://localhost:3000 \
-  claude --dangerously-load-development-channels server:decisionbroker
+**Recommended (works everywhere, no CLI arg-parsing pitfalls):** drop a project
+`.mcp.json` at the **repo root** pointing `bun` at `server.ts` via a relative
+path — `bun` resolves `channel/node_modules` from the file's own folder, so the
+launch directory doesn't matter. First `cd channel && bun install` once so deps
+exist, then create `decisionbroker/.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "decisionbroker": {
+      "command": "bun",
+      "args": ["./channel/server.ts"],
+      "env": { "DECISIONBROKER_API_URL": "http://localhost:3000" }
+    }
+  }
+}
 ```
 
-Claude Code spawns `server.ts` over stdio (it runs `bun start`, which installs
-deps then runs the server). A dim startup notice confirms the channel registered.
+This file hardcodes your local-dev URL, so keep it out of git (it's listed in
+`.gitignore` as `/.mcp.json`). Drop the `env` block to target production
+(defaults to `https://decisionbroker.com`). Then launch **from the repo root**
+and approve the project server when prompted:
+
+```bash
+claude --dangerously-load-development-channels server:decisionbroker
+```
+
+**Alternative — `claude mcp add` (register a local-scoped server):** point `bun`
+straight at `server.ts` by absolute path. Do NOT use `bun run --cwd … start` —
+its `--cwd`/`--silent` flags get parsed by `claude mcp add` itself instead of
+passed through. On **Windows PowerShell** the bare `--` separator is also eaten
+by PowerShell (yielding `missing required argument 'commandOrUrl'`); prefix the
+whole command with the stop-parsing token `--%` so the rest is passed verbatim:
+
+```powershell
+# PowerShell — note the leading --% so PowerShell forwards -- to claude
+claude --% mcp add decisionbroker --scope local --env DECISIONBROKER_API_URL=http://localhost:3000 -- bun "C:/path/to/decisionbroker/channel/server.ts"
+```
+
+```bash
+# bash/zsh — no --% needed
+claude mcp add decisionbroker --scope local --env DECISIONBROKER_API_URL=http://localhost:3000 -- bun /path/to/decisionbroker/channel/server.ts
+```
+
+(If a previous attempt half-registered the server, `claude mcp remove
+decisionbroker --scope local` first.) Confirm with `claude mcp list`, then launch
+(no env prefix needed — it's baked into the server config):
+
+```bash
+claude --dangerously-load-development-channels server:decisionbroker
+```
+
+Claude Code spawns `server.ts` over stdio. A dim startup notice confirms the
+channel registered. Point at production instead by dropping
+`--env DECISIONBROKER_API_URL=…` (it defaults to `https://decisionbroker.com`).
 
 ### Option B — as a plugin
 
@@ -71,13 +122,20 @@ deps then runs the server). A dim startup notice confirms the channel registered
 /reload-plugins
 ```
 
-Then launch with the plugin form of the dev flag:
+Then set the API URL (only when pointing at local dev) and launch with the
+plugin form of the dev flag:
 
-```bash
+```powershell
+# PowerShell — the bash `VAR=value claude …` prefix does NOT work here
+$env:DECISIONBROKER_API_URL = "http://localhost:3000"
 claude --dangerously-load-development-channels plugin:decisionbroker-channel@decisionbroker
 ```
 
-(Set `DECISIONBROKER_API_URL` in your shell first when pointing at local dev.)
+```bash
+# bash/zsh
+DECISIONBROKER_API_URL=http://localhost:3000 \
+  claude --dangerously-load-development-channels plugin:decisionbroker-channel@decisionbroker
+```
 
 ## End-to-end walkthrough
 

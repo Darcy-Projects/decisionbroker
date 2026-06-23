@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local-dev channel config (root only; channel/.mcp.json stays tracked)
+/.mcp.json

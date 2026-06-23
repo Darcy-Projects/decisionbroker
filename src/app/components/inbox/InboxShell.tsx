@@ -15,6 +15,7 @@ import {
   type NewDecisionInput,
 } from "./AddDecisionDialog";
 import { EditBoardDialog } from "./EditBoardDialog";
+import { AddBoardDialog } from "./AddBoardDialog";
 
 const filterToStatus: Record<string, Decision["status"] | undefined> = {
   "Needs decision": "needs_decision",
@@ -55,6 +56,7 @@ export function InboxShell({ initial }: { initial: InboxData }) {
   const [filter, setFilter] = useState("All");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [addOpen, setAddOpen] = useState(false);
+  const [addBoardOpen, setAddBoardOpen] = useState(false);
   const [editBoard, setEditBoard] = useState<Board | null>(null);
 
   const boardCounts = useMemo(() => {
@@ -175,6 +177,22 @@ export function InboxShell({ initial }: { initial: InboxData }) {
     setArchivedBoards(apply);
   }
 
+  async function handleCreateBoard(name: string) {
+    const res = await fetch("/api/boards", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert(body.error ?? "Could not create the board.");
+      throw new Error("create board failed");
+    }
+    const created: Board = await res.json();
+    setBoards((prev) => [...prev, created]);
+    setSelection({ type: "board", board: created.key });
+  }
+
   async function handleAddDecision(input: NewDecisionInput) {
     const res = await fetch("/api/decisions", {
       method: "POST",
@@ -199,6 +217,7 @@ export function InboxShell({ initial }: { initial: InboxData }) {
           setSelection({ type: "board", board: b })
         }
         onEditBoard={setEditBoard}
+        onAddBoard={() => setAddBoardOpen(true)}
         boardCounts={boardCounts}
         boards={boards}
         archivedBoards={archivedBoards}
@@ -242,6 +261,13 @@ export function InboxShell({ initial }: { initial: InboxData }) {
         boardName={
           allBoards.find((b) => b.key === selection.board)?.name ?? "this board"
         }
+      />
+
+      <AddBoardDialog
+        key={addBoardOpen ? "add-board-open" : "add-board-closed"}
+        open={addBoardOpen}
+        onClose={() => setAddBoardOpen(false)}
+        onCreate={handleCreateBoard}
       />
 
       {editBoard ? (

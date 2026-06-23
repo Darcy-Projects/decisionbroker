@@ -27,6 +27,10 @@ export const createSessionSchema = z.object({
   project: z.string().trim().nullable().optional(),
 });
 
+export const createBoardSchema = z.object({
+  name: z.string().trim().min(1, "A board name is required."),
+});
+
 export const updateBoardSchema = z.object({
   name: z.string().trim().min(1, "A board name is required."),
 });

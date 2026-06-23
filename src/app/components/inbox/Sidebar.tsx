@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Zap, ChevronDown, Pencil } from "lucide-react";
+import { Zap, ChevronDown, Pencil, Plus } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import type { Board, BoardKey } from "@/app/lib/decisions";
 
@@ -13,6 +13,7 @@ export function Sidebar({
   selection,
   onSelectBoard,
   onEditBoard,
+  onAddBoard,
   boardCounts,
   boards,
   archivedBoards,
@@ -20,6 +21,7 @@ export function Sidebar({
   selection: Selection;
   onSelectBoard: (b: BoardKey) => void;
   onEditBoard: (board: Board) => void;
+  onAddBoard: () => void;
   boardCounts: Record<BoardKey, number>;
   boards: Board[];
   archivedBoards: Board[];
@@ -62,19 +64,30 @@ export function Sidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3">
-        <button
-          onClick={() => setQueuesOpen((o) => !o)}
-          className="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
-          aria-expanded={queuesOpen}
-        >
-          <ChevronDown
-            className={cn(
-              "size-3.5 transition-transform",
-              queuesOpen ? "rotate-0" : "-rotate-90",
-            )}
-          />
-          Boards
-        </button>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setQueuesOpen((o) => !o)}
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+            aria-expanded={queuesOpen}
+          >
+            <ChevronDown
+              className={cn(
+                "size-3.5 transition-transform",
+                queuesOpen ? "rotate-0" : "-rotate-90",
+              )}
+            />
+            Boards
+          </button>
+          <button
+            type="button"
+            onClick={onAddBoard}
+            aria-label="Add board"
+            title="Add board"
+            className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <Plus className="size-4" />
+          </button>
+        </div>
         {queuesOpen ? (
           <ul className="mt-2 flex flex-col gap-0.5">
             {boards.map((b) => {

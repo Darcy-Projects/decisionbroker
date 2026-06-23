@@ -82,12 +82,12 @@ export function Sidebar({
                 selection.type === "board" && selection.board === b.key;
               const count = boardCounts[b.key] ?? 0;
               return (
-                <li key={b.key}>
+                <li key={b.key} className="group relative">
                   <button
                     onClick={() => onSelectBoard(b.key)}
                     onContextMenu={(e) => openMenu(e, b)}
                     className={cn(
-                      "group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",
+                      "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",
                       isActive
                         ? "bg-accent font-medium text-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-foreground",
@@ -96,10 +96,19 @@ export function Sidebar({
                     <span className={cn("size-2 rounded-full", b.color)} />
                     <span className="flex-1 truncate text-left">{b.name}</span>
                     {count ? (
-                      <span className="text-xs tabular-nums text-muted-foreground">
+                      <span className="text-xs tabular-nums text-muted-foreground transition-opacity group-hover:opacity-0">
                         {count}
                       </span>
                     ) : null}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onEditBoard(b)}
+                    aria-label={`Edit ${b.name}`}
+                    title="Edit board"
+                    className="pointer-events-none absolute right-1 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-background hover:text-foreground focus-visible:pointer-events-auto focus-visible:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100"
+                  >
+                    <Pencil className="size-3.5" />
                   </button>
                 </li>
               );
@@ -126,12 +135,12 @@ export function Sidebar({
               const isActive =
                 selection.type === "board" && selection.board === q.key;
               return (
-                <li key={q.key}>
+                <li key={q.key} className="group relative">
                   <button
                     onClick={() => onSelectBoard(q.key)}
                     onContextMenu={(e) => openMenu(e, q)}
                     className={cn(
-                      "group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",
+                      "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",
                       isActive
                         ? "bg-accent font-medium text-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-foreground",
@@ -139,6 +148,15 @@ export function Sidebar({
                   >
                     <span className={cn("size-2 rounded-full", q.color)} />
                     <span className="flex-1 truncate text-left">{q.name}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onEditBoard(q)}
+                    aria-label={`Edit ${q.name}`}
+                    title="Edit board"
+                    className="pointer-events-none absolute right-1 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-background hover:text-foreground focus-visible:pointer-events-auto focus-visible:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100"
+                  >
+                    <Pencil className="size-3.5" />
                   </button>
                 </li>
               );

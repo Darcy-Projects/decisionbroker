@@ -1,0 +1,6 @@
+{
+  "name": "decisionbroker-channel",
+  "description": "Answer a Claude Code session's questions in DecisionBroker's multiplayer decision inbox instead of the terminal. Claude's `ask` tool blocks until a human answers.",
+  "version": "0.1.0",
+  "keywords": ["decisionbroker", "channel", "mcp", "decisions", "human-in-the-loop"]
+}
